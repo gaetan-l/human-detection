@@ -293,12 +293,10 @@ public class HumanDetection {
                 String level = "[INFO]";
                 if (signaling) {
                 	if (savedImage) {
-                		level = "[OK]";
-                		messageSb.append("Saved image to project_path/frame/");
+                		messageSb.append("[OK] Saved image to project_path/frame/");
                 	}
                 	else {
-                		level = "[NOK]";
-                		messageSb.append("Failed to save image to project_path/frame/\"");
+                		messageSb.append("[NOK] Failed to save image to project_path/frame/\"");
                 	}
                 }
                 else {
