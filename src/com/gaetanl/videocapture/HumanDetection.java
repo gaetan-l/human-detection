@@ -29,15 +29,15 @@ public class HumanDetection {
 	private final static String HAAR_FULL_BODY = "haarcascade_fullbody.xml";
 	private final static String HAAR_UPPR_BODY = "haarcascade_upperbody.xml";
 	private final static String CAPTURE_WINDOW = "Human detection";
-	private final static int FRAMERATE = 200;
+	private final static int FRAMERATE = 100;
 	private final static DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
 	private final static DateTimeFormatter FILE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd_hhmmssSSS");
 
 	/*
 	 * Maximum amount of time between two detections for them to be considered
-	 * continuous.
+	 * continuous, in milliseconds.
 	 */
-	private final static int MAX_TIME_FOR_CONTINUOUS = FRAMERATE * 2;
+	private final static int MAX_TIME_FOR_CONTINUOUS = 200;
 
 	/*
 	 * Number of continuous detections.
@@ -56,14 +56,14 @@ public class HumanDetection {
 
 	/*
 	 * Minimum continuous detection time before signaling a person is really
-	 * present.
+	 * present, in milliseconds.
 	 */
-	private final static int MIN_CONTINUOUS_TIME_BEFORE_SIGNALING = 2000 / MAX_TIME_FOR_CONTINUOUS;
+	private final static int MIN_CONTINUOUS_TIME_BEFORE_SIGNALING = 1000;
 
 	/*
-	 * Minimum time between signaling calls.
+	 * Minimum time between signaling calls, in milliseconds.
 	 */
-	private final static int MIN_TIME_BETWEEN_SIGNALING = 1000 / MAX_TIME_FOR_CONTINUOUS;
+	private final static int MIN_TIME_BETWEEN_SIGNALING = 2000;
 
 	/*
 	 * Time of the last signaling.
@@ -161,6 +161,7 @@ public class HumanDetection {
                 }
 
             	lastDetectionTime = time;
+            	long continuousDetectionTime = 0;
             	boolean resetContinuous = false;
             	boolean signaling = false;
             	boolean minContinuous = false;
@@ -177,8 +178,9 @@ public class HumanDetection {
                 	continuousDetections++;
                 	if (continuousDetectionStart == null) continuousDetectionStart = time;
 
-                	minContinuous = continuousDetections > MIN_CONTINUOUS_TIME_BEFORE_SIGNALING;
-                	minBeforeSignaling = (lastSignalingTime == null) || lastSignalingTime.until(time, ChronoUnit.SECONDS) > MIN_TIME_BETWEEN_SIGNALING;
+                	continuousDetectionTime = continuousDetectionStart.until(time, ChronoUnit.MILLIS);
+                	minContinuous = continuousDetectionTime > MIN_CONTINUOUS_TIME_BEFORE_SIGNALING;
+                	minBeforeSignaling = (lastSignalingTime == null) || lastSignalingTime.until(time, ChronoUnit.MILLIS) > MIN_TIME_BETWEEN_SIGNALING;
                 	signaling = minContinuous && minBeforeSignaling;
                     if (signaling) {
                     	lastSignalingTime = time;
