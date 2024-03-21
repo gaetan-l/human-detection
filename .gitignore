@@ -1,0 +1,9 @@
+*target*
+*.jar
+*.class
+
+# Eclipse specific
+.project
+bin/**
+.classpath
+.settings/
