@@ -27,7 +27,7 @@ import org.opencv.videoio.Videoio;
  *
  * @author Gaetan L.
  */
-public class HumanDetection {
+public class HumanDetection implements Runnable, HumanDetectionMBean {
 	/**
 	 * Path to folder containing Haar Cascade Classifier files, relative to
 	 * project root folder.
@@ -39,6 +39,11 @@ public class HumanDetection {
 	 * folder.
 	 */
 	private final static String DET_FRAME_PATH = "frame/";
+
+	/**
+	 * Determines if detection frames should be saved or not.
+	 */
+	private static boolean FRAME_SAVING = true;
 
 
 
@@ -67,23 +72,23 @@ public class HumanDetection {
 	/**
 	 * Time between each capture in the capture loop, in milliseconds.
 	 */
-	private final static int FRAMERATE         =  100;
+	private static int FRAMERATE         =  100;
 
 	/**
 	 * Maximum time between two detections for them to be considered
 	 * continuous.
 	 */
-	private final static int CTIME_BREAK       =  200;
+	private static int CTIME_BREAK       =  200;
 
 	/**
 	 * Minimum continuous detection time before signaling.
 	 */
-	private final static int MIN_CTIME_SIGNAL  = 1000;
+	private static int MIN_CTIME_SIGNAL  = 1000;
 
 	/**
 	 * Minimum time between each signaling calls.
 	 */
-	private final static int MIN_TIME_RESIGNAL = 2000;
+	private static int MIN_TIME_RESIGNAL = 2000;
 
 
 
@@ -147,7 +152,10 @@ public class HumanDetection {
 	 */
 	private static final MatOfRect DETECTION_FRAME = new MatOfRect();
 
-    public static void main(String[] args) throws InterruptedException {
+
+
+	@Override
+	public void run() {
         boolean fileExists = false;
         String filePath;
         CascadeClassifier humanDetector;
@@ -279,7 +287,7 @@ public class HumanDetection {
                     	// TODO: Put actual signaling code here
 
                     	// Saving detected frame to image
-                    	if (DET_FRAME_PATH != null) {
+                    	if (FRAME_SAVING && (DET_FRAME_PATH != null)) {
 	                    	String imagePath = String.format("%sframe_%s.jpg", DET_FRAME_PATH, FILE_TIME_FORMATTER.format(time));
 	                    	savedImage = Imgcodecs.imwrite(imagePath, FRAME);
                     	}
@@ -292,11 +300,14 @@ public class HumanDetection {
                 StringBuilder messageSb = new StringBuilder();
                 String level = "[INFO]";
                 if (signaling) {
-                	if (savedImage) {
-                		messageSb.append("[OK] Saved image to project_path/frame/");
+                	if (FRAME_SAVING && savedImage) {
+                		messageSb.append("[OK] Saved frame to project_path/" + DET_FRAME_PATH);
+                	}
+                	else if (!FRAME_SAVING && !savedImage) {
+                		messageSb.append("[OK] Frame saving disabled");
                 	}
                 	else {
-                		messageSb.append("[NOK] Failed to save image to project_path/frame/\"");
+                		messageSb.append("[NOK] Failed to save frame to project_path/frame/\"");
                 	}
                 }
                 else {
@@ -356,4 +367,58 @@ public class HumanDetection {
     	System.out.println("Exiting program");
     	System.exit(exitCode);
     }
+
+	@Override
+	public boolean getFrameSaving() {
+		return FRAME_SAVING;
+	}
+
+	@Override
+	public void setFrameSaving(final boolean frameSaving) {
+		FRAME_SAVING = frameSaving;
+		
+	}
+
+	@Override
+	public int getFramerate() {
+		return FRAMERATE;
+	}
+
+	@Override
+	public void setFramerate(final int framerate) {
+		FRAMERATE = framerate;
+		
+	}
+
+	@Override
+	public int getCTimeBreak() {
+		return CTIME_BREAK;
+	}
+
+	@Override
+	public void setCTimeBreak(final int cTimeBreak) {
+		CTIME_BREAK = cTimeBreak;
+		
+	}
+
+	@Override
+	public int getMinCTimeSignal() {
+		return MIN_CTIME_SIGNAL; 
+	}
+
+	@Override
+	public void setMinCTimeSignal(final int minCTimeSignal) {
+		MIN_CTIME_SIGNAL = minCTimeSignal;
+		
+	}
+
+	@Override
+	public int getMinTimeResignal() {
+		return MIN_TIME_RESIGNAL;
+	}
+
+	@Override
+	public void setMinTimeResignal(final int minTimeResignal) {
+		MIN_TIME_RESIGNAL = minTimeResignal;
+	}
 }
