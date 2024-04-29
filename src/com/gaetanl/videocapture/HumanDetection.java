@@ -32,92 +32,92 @@ public class HumanDetection implements Runnable, HumanDetectionMBean {
 	 * Path to folder containing Haar Cascade Classifier files, relative to
 	 * project root folder.
 	 */
-	private final static String RESOURCES_PATH = "resources/";
+	private final String RESOURCES_PATH = "resources/";
 
 	/**
 	 * Path to folder used to save signaling frames, relative to project root
 	 * folder.
 	 */
-	private final static String DET_FRAME_PATH = "frame/";
+	private final String DET_FRAME_PATH = "frame/";
 
 	/**
 	 * Determines if detection frames should be saved or not.
 	 */
-	private static boolean FRAME_SAVING = true;
+	private boolean FRAME_SAVING = true;
 
 
 
 	/**
 	 * Name of the Haar Cascade Classifier file detecting face. 
 	 */
-	private final static String HAAR_FR_FACE_1 = "haarcascade_frontalface_default.xml";
+	private final String HAAR_FR_FACE_1 = "haarcascade_frontalface_default.xml";
 
 	/**
 	 * Name of the Haar Cascade Classifier file detecting full body. 
 	 */
-	private final static String HAAR_FULL_BODY = "haarcascade_fullbody.xml";
+	private final String HAAR_FULL_BODY = "haarcascade_fullbody.xml";
 
 	/**
 	 * Names of the Haar Cascade Classifier file detecting upper body. 
 	 */
-	private final static String HAAR_UPPR_BODY = "haarcascade_upperbody.xml";
+	private final String HAAR_UPPR_BODY = "haarcascade_upperbody.xml";
 
 	/**
 	 * Name of the widow displaying video stream.
 	 */
-	private final static String CAPTURE_WINDOW = "Human detection";
+	private final String CAPTURE_WINDOW = "Human detection";
 
 
 
 	/**
 	 * Time between each capture in the capture loop, in milliseconds.
 	 */
-	private static int FRAMERATE         =  100;
+	private int FRAMERATE         =  100;
 
 	/**
 	 * Maximum time between two detections for them to be considered
 	 * continuous.
 	 */
-	private static int CTIME_BREAK       =  200;
+	private int CTIME_BREAK       =  200;
 
 	/**
 	 * Minimum continuous detection time before signaling.
 	 */
-	private static int MIN_CTIME_SIGNAL  = 1000;
+	private int MIN_CTIME_SIGNAL  = 1000;
 
 	/**
 	 * Minimum time between each signaling calls.
 	 */
-	private static int MIN_TIME_RESIGNAL = 2000;
+	private int MIN_TIME_RESIGNAL = 2000;
 
 
 
 	/**
 	 * Used for logging.
 	 */
-	private final static DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
+	private final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
 
 	/**
 	 * Used for file naming.
 	 */
-	private final static DateTimeFormatter FILE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd_hhmmssSSS");
+	private final DateTimeFormatter FILE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd_hhmmssSSS");
 
 
 
 	/**
 	 * Beginning of the current continuous detection.
 	 */
-	private static LocalDateTime continuousDetectionStart;
+	private LocalDateTime continuousDetectionStart;
 
 	/**
 	 * Time of the last detection.
 	 */
-	private static LocalDateTime lastDetectionTime;
+	private LocalDateTime lastDetectionTime;
 
 	/**
 	 * Time of the last signaling.
 	 */
-	private static LocalDateTime lastSignalingTime;
+	private LocalDateTime lastSignalingTime;
 	
 
 	/*
@@ -130,27 +130,27 @@ public class HumanDetection implements Runnable, HumanDetectionMBean {
 	/**
 	 * User input scanner.
 	 */
-	private static final Scanner SCANNER = new Scanner(System.in);
+	private final Scanner SCANNER = new Scanner(System.in);
 
 	/**
 	 * OpenCV class in charge of video capture.
 	 */
-	private static final VideoCapture CAPTURE = new VideoCapture(Videoio.CAP_DSHOW);
+	private final VideoCapture CAPTURE = new VideoCapture(Videoio.CAP_DSHOW);
 
 	/**
 	 * OpenCV class in charge of storing the values of a frame.
 	 */
-	private static final Mat FRAME = new Mat();
+	private final Mat FRAME = new Mat();
 
 	/**
 	 * OpenCV class in charge of transforming a frame to greyscale.
 	 */
-	private static final Mat GRAY_FRAME = new Mat();
+	private final Mat GRAY_FRAME = new Mat();
 
 	/**
 	 * OpenCV class in charge of displaying detected objects.
 	 */
-	private static final MatOfRect DETECTION_FRAME = new MatOfRect();
+	private final MatOfRect DETECTION_FRAME = new MatOfRect();
 
 
 
@@ -208,10 +208,10 @@ public class HumanDetection implements Runnable, HumanDetectionMBean {
      * @throws IllegalArgumentException  if the CascadeClassifier object
      *                                   couldn't load the file 
      */
-    private static void loadClassifier(final String path, final CascadeClassifier humanDetector) throws FileNotFoundException, IllegalArgumentException {
+    private void loadClassifier(final String path, final CascadeClassifier humanDetector) throws FileNotFoundException, IllegalArgumentException {
         if (!(new File(path)).exists()) throw new FileNotFoundException(String.format("File %s not found", path));
         if (!humanDetector.load(path))  throw new IllegalArgumentException(String.format("Couldn't load CascadeClassifier with %s", path));
-        System.out.println(String.format("Loaded CascadeClassifier with %s", path));
+        printMessage("INFO", "Resources", "Loaded CascadeClassifier with " + path);
     }
 
     /**
@@ -220,7 +220,7 @@ public class HumanDetection implements Runnable, HumanDetectionMBean {
      *
      * @param  humanDetector  the CascadeClassifier used for detection
      */
-    private static void captureLoop(final CascadeClassifier humanDetector) {
+    private void captureLoop(final CascadeClassifier humanDetector) {
         // Window for displaying results
         HighGui.namedWindow(CAPTURE_WINDOW, HighGui.WINDOW_AUTOSIZE);
 
@@ -228,8 +228,7 @@ public class HumanDetection implements Runnable, HumanDetectionMBean {
 
         // Initialize video capture from camera
         if (!CAPTURE.isOpened()) {
-            System.err.println("Video capture is not open");
-            System.err.println("Check that camera is not in use in another program or running instance of Java");
+            printMessage("ERROR", "Capture", "Video capture is not open. Check that camera is not in use in another program or running instance of Java");
 
             // Back to the choice input loop
             return;
@@ -318,13 +317,13 @@ public class HumanDetection implements Runnable, HumanDetectionMBean {
                 	else if (!minBeforeSignaling) messageSb.append("Insufficient delay since last signaling");
                 }
 
-                System.out.println(String.format(" %-7s  TIME: %s  |  EVNT: %9s  |  STRT: %s  |  CONT: %6dms  |  DIFF: %6dms  |  SGNL: %9s  |  MESG: %s",
+                System.out.println(String.format(" %-7s  EVNT: %9s  |  TIME: %s  |  DIFF: %6dms  |  STRT: %s  |  CONT: %6dms  |  SGNL: %9s  |  MESG: %s",
                 		level,
-                		TIME_FORMATTER.format(time),
                 		"Detection",
+                		TIME_FORMATTER.format(time),
+                		timeDifference,
                 		(continuousDetectionStart == null ? "            " : TIME_FORMATTER.format(continuousDetectionStart)),
                 		(continuousDetectionStart == null ? "            " : continuousDetectionStart.until(time, ChronoUnit.MILLIS)),
-                		timeDifference,
                 		signaling ? "Signaling" : "Inhibited",
                 		messageSb.toString()));
             }
@@ -344,28 +343,36 @@ public class HumanDetection implements Runnable, HumanDetectionMBean {
      *
      * @param  exitCode  Code returned to System.exit
      */
-    private static void exit(final int exitCode) {
+    private void exit(final int exitCode) {
     	// Releasing resources
     	if (SCANNER != null) SCANNER.close();
-        System.out.println("Scanner closed");
+    	printMessage("INFO", "Resources", "Scanner closed");
 
     	if (CAPTURE != null) CAPTURE.release();
-        System.out.println("Video capture stopped");
+    	printMessage("INFO", "Capture", "Video capture stopped");
 
         if (FRAME != null) FRAME.release();
-        System.out.println("Frame released");
+    	printMessage("INFO", "Resources", "Frame released");
 
         if (GRAY_FRAME != null) GRAY_FRAME.release();
-        System.out.println("Gray frame released");
+    	printMessage("INFO", "Resources", "Gray frame released");
 
         if (DETECTION_FRAME != null) DETECTION_FRAME.release();
-        System.out.println("Detection frame released");
+    	printMessage("INFO", "Resources", "Detection frame released");
 
         HighGui.destroyWindow(CAPTURE_WINDOW);
-        System.out.println("Window destroyed");
+    	printMessage("INFO", "Resources", "Window destroyed");
 
-    	System.out.println("Exiting program");
+    	printMessage("INFO", "Resources", "Exiting program");
     	System.exit(exitCode);
+    }
+
+    private void printMessage(final String level, final String event, final String message) {
+    	System.out.println(String.format(" %-7s  EVNT: %9s  |  TIME: %s  |  MESG: %s",
+        		level,
+        		event,
+        		TIME_FORMATTER.format(LocalDateTime.now()),
+        		message));
     }
 
 	@Override
